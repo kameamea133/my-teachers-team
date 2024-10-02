@@ -24,8 +24,10 @@ const SignUp = () => {
   }
 
   const handleSendOtp = () => {
-    console.log("Sending OTP...", email);
-    
+    if(!email) {
+      toast.error('Please enter our email');
+      return
+    }
   }
 
   return (
