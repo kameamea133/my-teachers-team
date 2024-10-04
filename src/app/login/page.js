@@ -4,21 +4,51 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from './../../context/AuthContext'
 import { useRouter } from 'next/navigation'
+import { toast } from 'react-toastify'
+
+
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const userData = { email, role: 'student' };
-    login(userData);
-    router.push('/');
+    if(!email || !password) {
+      toast.error('All fields are required');
+      return;
+    }
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      
+      if(response.ok) {
+        toast.success('Login successful');
+        login(data.data);
+        router.push('/');
+      } else {
+        toast.error(data.message || 'Failed to login');
+      }
+    } catch (error) {
+      toast.error('An error occured during login');
+  } finally {
+    setLoading(false);
   }
+};
 
   return (
     <div className='flex flex-col items-center justify-center h-[100vh] bg-black text-white'>

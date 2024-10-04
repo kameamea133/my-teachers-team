@@ -4,6 +4,8 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../../context/AuthContext'
 import { useRouter } from 'next/navigation'
+import { toast } from 'react-toastify'
+import { set } from 'mongoose'
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
@@ -11,22 +13,71 @@ const SignUp = () => {
   const [name, setName] = useState('');
   const [role, setRole] = useState('student');
   const [otp, setOtp] = useState('');
+  const [ loading , setLoading] = useState(false);
 
   const { login } = useAuth();
+  const router = useRouter();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const userData = { email, role };
-    login(userData);
+   if(!email || !password || !name || !otp) {
+    toast.error('All fields are required');
+    return;
+   }
+   try {
+    setLoading(true);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password, name, role, otp }),
+      credentials: 'include',
+    });
 
-    router.push('/');
-  }
+    const data = await response.json();
+    if(response.ok) {
+      toast.success('Registration successful');
+      login({ email, role });
+      router.push('/login');
+    }
+    else {
+      toast.error(data.message || 'Failed to register');
+    }
 
-  const handleSendOtp = () => {
+   } catch (error) {
+     toast.error('Error during registration');
+  } 
+}
+  const handleSendOtp = async () => {
+    
     if(!email) {
       toast.error('Please enter our email');
-      return
+      return;
+    }
+    try {
+      setLoading(true);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/sendotp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+        credentials: 'include',
+      })
+
+      const data = await response.json();
+      if(response.ok) {
+        toast.success('OTP sent successfully');
+      }
+      else {
+        toast.error(data.message || 'Failed to send OTP')
+      }
+    } catch (error) {
+      toast.error('Error sending OTP');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -60,7 +111,7 @@ const SignUp = () => {
       onClick={handleSendOtp}
       className="h-12 w-[30%] bg-white text-black rounded-md cursor-pointer font-bold hover:bg-[#f0f0f0] transition duration-300"
     >
-      Send OTP
+      {loading ? 'Sending...' : 'Send OTP'}
     </button>
   </div>
 

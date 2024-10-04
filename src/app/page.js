@@ -1,7 +1,6 @@
 import ProtectedRoute from "@/components/ProtectedRoute";
-
 export default function Home() {
-  console.log("Home component rendering");
+ 
   
   return (
      <ProtectedRoute>
