@@ -1,9 +1,8 @@
-'use client'
+'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import { toast } from 'react-toastify';
 
 const ProtectedRoute = ({ children }) => {
@@ -22,7 +21,10 @@ const ProtectedRoute = ({ children }) => {
                 const data = await response.json();
                 
                 if (response.ok && data.ok) {
-                    login({ userId: data.userId }); 
+                    // Si l'utilisateur est authentifié, on met à jour l'état avec login()
+                    if (!auth.user) {
+                        login({ userId: data.userId }); 
+                    }
                     setLoading(false);
                 } else {
                     toast.error(data.message || 'Session expired. Please log in again');
@@ -31,20 +33,25 @@ const ProtectedRoute = ({ children }) => {
             } catch (error) {
                 toast.error('Error checking login status.');
                 router.push('/login');
-                
             } finally {
-                setLoading(false);
+                setLoading(false); // Arrête le chargement quoi qu'il arrive
             }
         };
 
-        checkLogin();
-    }, [ router]);
+        // On vérifie si l'utilisateur est déjà authentifié
+        if (!auth.user) {
+            checkLogin();
+        } else {
+            setLoading(false); // Si déjà connecté, on arrête le chargement
+        }
+    }, [auth.user, login, router]);
 
-
-    if (auth.loading) {
+    // Affiche un message de chargement tant que l'état de l'utilisateur n'est pas vérifié
+    if (loading || auth.loading) {
         return <div>Loading...</div>;
     }
 
+    // Si l'utilisateur est authentifié, on rend le contenu enfant, sinon rien
     return auth.user ? children : null;
 };
 
