@@ -21,7 +21,6 @@ const ProtectedRoute = ({ children }) => {
                 const data = await response.json();
                 
                 if (response.ok && data.ok) {
-                    // Si l'utilisateur est authentifié, on met à jour l'état avec login()
                     if (!auth.user) {
                         login({ userId: data.userId }); 
                     }
@@ -34,24 +33,24 @@ const ProtectedRoute = ({ children }) => {
                 toast.error('Error checking login status.');
                 router.push('/login');
             } finally {
-                setLoading(false); // Arrête le chargement quoi qu'il arrive
+                setLoading(false); 
             }
         };
 
-        // On vérifie si l'utilisateur est déjà authentifié
+        
         if (!auth.user) {
             checkLogin();
         } else {
-            setLoading(false); // Si déjà connecté, on arrête le chargement
+            setLoading(false); 
         }
     }, [auth.user, login, router]);
 
-    // Affiche un message de chargement tant que l'état de l'utilisateur n'est pas vérifié
+    
     if (loading || auth.loading) {
         return <div>Loading...</div>;
     }
 
-    // Si l'utilisateur est authentifié, on rend le contenu enfant, sinon rien
+    
     return auth.user ? children : null;
 };
 

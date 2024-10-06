@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { useAuth } from '../context/AuthContext';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+
 
 const Navbar = () => {
   const { auth, logout} = useAuth();
